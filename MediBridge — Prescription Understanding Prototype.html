@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MediBridge — Understand your prescription</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F2F5F1;
+    --surface: #FFFFFF;
+    --ink: #16241F;
+    --ink-soft: #4A5850;
+    --primary: #2C5F52;
+    --primary-ink: #FFFFFF;
+    --accent: #C97F1D;
+    --clear: #3F7D5C;
+    --uncertain: #C97F1D;
+    --unreadable: #B3452F;
+    --line: #DCE3DD;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) {
+      --bg: #101915;
+      --surface: #172420;
+      --ink: #EAF0EC;
+      --ink-soft: #A9BAB2;
+      --line: #2A3A33;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101915;
+    --surface: #172420;
+    --ink: #EAF0EC;
+    --ink-soft: #A9BAB2;
+    --line: #2A3A33;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Work Sans', sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+  header.top { text-align: left; margin-bottom: 2rem; }
+  .wordmark { display: flex; align-items: baseline; gap: 0.6rem; }
+  .wordmark .mark {
+    width: 2rem; height: 2rem; border-radius: 50%;
+    background: var(--primary); flex: none;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .wordmark .mark svg { width: 1.1rem; height: 1.1rem; }
+  h1.brand {
+    font-family: 'Source Serif 4', serif;
+    font-weight: 700; font-size: 1.6rem; margin: 0; color: var(--ink);
+  }
+  .tagline { color: var(--ink-soft); font-size: 0.98rem; margin: 0.6rem 0 0; max-width: 46ch; }
+  .safety-note {
+    border-left: 3px solid var(--primary);
+    background: var(--surface);
+    padding: 0.85rem 1rem; margin: 1.5rem 0 0;
+    font-size: 0.88rem; color: var(--ink-soft); border-radius: 0 6px 6px 0;
+  }
+  .safety-note strong { color: var(--ink); }
+
+  .progress { display: flex; gap: 0.4rem; margin: 2rem 0 1.25rem; }
+  .progress .dot {
+    flex: 1; height: 4px; border-radius: 2px; background: var(--line);
+    position: relative; overflow: hidden;
+  }
+  .progress .dot.done, .progress .dot.active { background: var(--primary); }
+  .step-label { font-size: 0.82rem; color: var(--ink-soft); margin: 0 0 1.5rem; }
+  .step-label b { color: var(--primary); font-weight: 600; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 14px; padding: 1.75rem 1.5rem;
+  }
+  .card h2 {
+    font-family: 'Source Serif 4', serif; font-weight: 600;
+    font-size: 1.3rem; margin: 0 0 0.5rem;
+  }
+  .card p.lead { color: var(--ink-soft); margin: 0 0 1.5rem; font-size: 0.95rem; }
+
+  .drop {
+    border: 1.5px dashed var(--line); border-radius: 10px;
+    padding: 2rem 1rem; text-align: center; color: var(--ink-soft);
+    font-size: 0.9rem; cursor: pointer; transition: border-color 0.15s;
+  }
+  .drop:hover, .drop:focus-visible { border-color: var(--primary); }
+  .drop input { display: none; }
+  .drop .file-icon { font-size: 1.8rem; display: block; margin-bottom: 0.5rem; }
+
+  .btn {
+    font-family: inherit; font-size: 0.95rem; font-weight: 600;
+    padding: 0.75rem 1.4rem; border-radius: 8px; border: none;
+    cursor: pointer; transition: opacity 0.15s; display: inline-flex;
+    align-items: center; gap: 0.5rem;
+  }
+  .btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+  .btn-primary { background: var(--primary); color: var(--primary-ink); }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-ghost { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); }
+  .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+  .btn-row { display: flex; gap: 0.75rem; margin-top: 1.5rem; flex-wrap: wrap; }
+
+  .spinner-row { display: flex; align-items: center; gap: 0.75rem; color: var(--ink-soft); font-size: 0.9rem; padding: 1rem 0; }
+  .spinner {
+    width: 1.1rem; height: 1.1rem; border-radius: 50%;
+    border: 2px solid var(--line); border-top-color: var(--primary);
+    animation: spin 0.8s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 1.6s; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .med-item {
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: 1rem 1.1rem; margin-bottom: 0.9rem;
+  }
+  .med-head { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+  .med-name { font-weight: 600; font-size: 1rem; }
+  .conf {
+    font-size: 0.76rem; font-weight: 600; padding: 0.2rem 0.55rem;
+    border-radius: 20px; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.35rem;
+  }
+  .conf::before { content: ""; width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+  .conf.clear { background: rgba(63,125,92,0.12); color: var(--clear); }
+  .conf.clear::before { background: var(--clear); }
+  .conf.uncertain { background: rgba(201,127,29,0.13); color: var(--uncertain); }
+  .conf.uncertain::before { background: var(--uncertain); }
+  .conf.unreadable { background: rgba(179,69,47,0.13); color: var(--unreadable); }
+  .conf.unreadable::before { background: var(--unreadable); }
+  .med-detail { color: var(--ink-soft); font-size: 0.88rem; margin-top: 0.4rem; }
+  .med-flag { font-size: 0.85rem; margin-top: 0.55rem; color: var(--unreadable); }
+
+  .lang-row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+  .lang-btn {
+    padding: 0.6rem 1.1rem; border-radius: 8px; border: 1px solid var(--line);
+    background: transparent; color: var(--ink); font-family: inherit;
+    font-size: 0.92rem; cursor: pointer;
+  }
+  .lang-btn.selected { background: var(--primary); color: var(--primary-ink); border-color: var(--primary); }
+
+  .explain-item { margin-bottom: 1.1rem; }
+  .explain-item .med-name { margin-bottom: 0.35rem; }
+  .explain-text { font-size: 0.95rem; color: var(--ink); }
+  .speak-btn {
+    margin-top: 0.5rem; font-size: 0.82rem; color: var(--primary);
+    background: none; border: none; cursor: pointer; padding: 0;
+    display: inline-flex; align-items: center; gap: 0.3rem; font-family: inherit; font-weight: 600;
+  }
+  .speak-btn:disabled { color: var(--ink-soft); cursor: default; }
+
+  .confirm-item { display: flex; align-items: flex-start; gap: 0.7rem; }
+  .confirm-item input { margin-top: 0.2rem; width: 1.05rem; height: 1.05rem; accent-color: var(--primary); }
+  .confirm-item label { font-size: 0.92rem; cursor: pointer; }
+  .confirm-item small { display: block; color: var(--ink-soft); margin-top: 0.15rem; }
+
+  .reminder-row {
+    display: flex; align-items: center; gap: 0.85rem;
+    padding: 0.75rem 0; border-bottom: 1px solid var(--line);
+  }
+  .reminder-row:last-child { border-bottom: none; }
+  .reminder-time { font-weight: 600; font-size: 0.95rem; min-width: 4.4rem; color: var(--primary); }
+  .reminder-what { font-size: 0.9rem; color: var(--ink-soft); }
+  .reminder-what b { color: var(--ink); font-weight: 600; }
+
+  .demo-flag {
+    font-size: 0.8rem; color: var(--ink-soft); margin-top: 1.25rem;
+    border-top: 1px solid var(--line); padding-top: 0.9rem;
+  }
+  footer.foot { text-align: center; color: var(--ink-soft); font-size: 0.8rem; margin-top: 2.5rem; }
+
+  [hidden] { display: none !important; }
+  @media (max-width: 420px) {
+    .card { padding: 1.4rem 1.1rem; }
+    .btn-row { flex-direction: column; align-items: stretch; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="wordmark">
+      <span class="mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M4 12h5l1.5-4 3 8L15 12h5"/></svg>
+      </span>
+      <h1 class="brand">MediBridge</h1>
+    </div>
+    <p class="tagline">Bridging the gap between a prescription and the patient trying to understand it.</p>
+    <div class="safety-note">
+      <strong>What this is not:</strong> not an AI doctor, not a prescription generator. It never invents a dosage or guesses an unclear medicine name — it only reads, explains and reminds, using what a doctor already wrote.
+    </div>
+  </header>
+
+  <div class="progress" id="progress"></div>
+  <p class="step-label" id="stepLabel"></p>
+
+  <div class="card">
+
+    <!-- Step 1: Scan -->
+    <section id="step-scan">
+      <h2>Scan the prescription</h2>
+      <p class="lead">Take a photo of the prescription, or try the demo with a sample one.</p>
+      <label class="drop" tabindex="0">
+        <span class="file-icon">📄</span>
+        <span id="dropText">Tap to choose a photo, or drag one here</span>
+        <input type="file" accept="image/*" id="fileInput">
+      </label>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="sampleBtn">Use a sample prescription</button>
+      </div>
+      <div class="spinner-row" id="scanning" hidden>
+        <span class="spinner"></span> Reading the handwriting and printed text…
+      </div>
+    </section>
+
+    <!-- Step 2: Verify -->
+    <section id="step-verify" hidden>
+      <h2>Here's what we found</h2>
+      <p class="lead">Check each item's confidence before anything else happens.</p>
+      <div id="medList"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="toLangBtn">Continue</button>
+      </div>
+    </section>
+
+    <!-- Step 3: Language -->
+    <section id="step-lang" hidden>
+      <h2>Choose your language</h2>
+      <p class="lead">The explanation and voice reading will use this language.</p>
+      <div class="lang-row" id="langRow"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="toExplainBtn" disabled>Continue</button>
+      </div>
+    </section>
+
+    <!-- Step 4: Explain -->
+    <section id="step-explain" hidden>
+      <h2 id="explainHeading">In simple terms</h2>
+      <div id="explainList"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="toConfirmBtn">Continue</button>
+      </div>
+    </section>
+
+    <!-- Step 5: Confirm -->
+    <section id="step-confirm" hidden>
+      <h2>Before we set reminders</h2>
+      <p class="lead">Confirm you understand each medicine — or that you'll check the unclear one with your doctor.</p>
+      <div id="confirmList"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="toRemindBtn" disabled>Set reminders</button>
+      </div>
+    </section>
+
+    <!-- Step 6: Reminders -->
+    <section id="step-remind" hidden>
+      <h2>Your reminders are set</h2>
+      <p class="lead">Based on the doctor's instructions you confirmed.</p>
+      <div id="reminderList"></div>
+      <p class="demo-flag">This is a prototype — reminders aren't sent from this page. In the full app, they'd arrive as notifications in your chosen language.</p>
+      <div class="btn-row">
+        <button class="btn btn-ghost" id="restartBtn">Start over</button>
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="foot">MediBridge is a communication aid, not a medical authority. Always confirm unclear items with a doctor or pharmacist.</footer>
+</div>
+
+<script>
+// ---- mock data: what the "OCR" would have extracted from a sample prescription ----
+const MEDS = [
+  {
+    id: 'paracetamol', name: 'Paracetamol 500mg', confidence: 'clear',
+    raw: 'Tab. Paracetamol 500mg — 1 tab twice daily after food, 5 days',
+    text: {
+      en: 'Take one tablet twice a day, after meals, for 5 days. This helps with fever and pain.',
+      hi: 'दिन में दो बार, खाने के बाद एक गोली लें, 5 दिनों तक। यह बुखार और दर्द में आराम देती है।',
+      bn: 'দিনে দুইবার, খাবারের পর একটি ট্যাবলেট খান, ৫ দিন ধরে। এটি জ্বর ও ব্যথায় সাহায্য করে।'
+    }
+  },
+  {
+    id: 'azithromycin', name: 'Azithromycin 250mg', confidence: 'clear',
+    raw: 'Tab. Azithromycin 250mg — 1 tab once daily, 3 days',
+    text: {
+      en: 'Take one tablet once a day for 3 days, at roughly the same time each day. Finish the full course even if you feel better.',
+      hi: 'रोज़ एक ही समय पर, दिन में एक बार, 3 दिनों तक एक गोली लें। बेहतर महसूस होने पर भी पूरा कोर्स पूरा करें।',
+      bn: 'প্রতিদিন প্রায় একই সময়ে, দিনে একবার, ৩ দিন ধরে একটি ট্যাবলেট খান। ভালো লাগলেও পুরো কোর্স শেষ করুন।'
+    }
+  },
+  {
+    id: 'unclear', name: 'Pantop— (name unclear)', confidence: 'uncertain',
+    raw: 'Tab. Pantop-? — instructions partly illegible',
+    text: {
+      en: "We couldn't confidently read this medicine's name or dosage.",
+      hi: 'हम इस दवा का नाम या मात्रा ठीक से नहीं पढ़ पाए।',
+      bn: 'আমরা এই ওষুধের নাম বা মাত্রা নিশ্চিতভাবে পড়তে পারিনি।'
+    },
+    flag: {
+      en: 'Please confirm this one with your doctor or pharmacist — we will not guess.',
+      hi: 'कृपया इसे अपने डॉक्टर या फार्मासिस्ट से पुष्टि करें — हम अनुमान नहीं लगाएंगे।',
+      bn: 'অনুগ্রহ করে এটি আপনার ডাক্তার বা ফার্মাসিস্টের সাথে নিশ্চিত করুন — আমরা অনুমান করব না।'
+    }
+  }
+];
+
+const LANGS = [
+  { code: 'en', label: 'English', speech: 'en-IN' },
+  { code: 'hi', label: 'हिन्दी', speech: 'hi-IN' },
+  { code: 'bn', label: 'বাংলা', speech: 'bn-IN' }
+];
+
+const STEPS = ['scan', 'verify', 'lang', 'explain', 'confirm', 'remind'];
+const LABELS = { scan: 'Scan', verify: 'Verify', lang: 'Language', explain: 'Explain', confirm: 'Confirm', remind: 'Remind' };
+let stepIndex = 0;
+let chosenLang = null;
+let confirmed = {};
+
+function renderProgress() {
+  const bar = document.getElementById('progress');
+  bar.innerHTML = '';
+  STEPS.forEach((s, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i < stepIndex ? ' done' : i === stepIndex ? ' active' : '');
+    bar.appendChild(d);
+  });
+  document.getElementById('stepLabel').innerHTML =
+    'Step ' + (stepIndex + 1) + ' of ' + STEPS.length + ' — <b>' + LABELS[STEPS[stepIndex]] + '</b>';
+}
+
+function goTo(name) {
+  STEPS.forEach(s => document.getElementById('step-' + s).hidden = (s !== name));
+  stepIndex = STEPS.indexOf(name);
+  renderProgress();
+}
+
+function confBadge(level) {
+  const labels = { clear: 'Clearly detected', uncertain: 'Needs confirmation', unreadable: 'Unreadable' };
+  return '<span class="conf ' + level + '">' + labels[level] + '</span>';
+}
+
+// --- Step 1: scanning ---
+function startScan() {
+  document.getElementById('scanning').hidden = false;
+  setTimeout(() => {
+    document.getElementById('scanning').hidden = true;
+    buildVerifyList();
+    goTo('verify');
+  }, 1100);
+}
+document.getElementById('sampleBtn').addEventListener('click', startScan);
+document.getElementById('fileInput').addEventListener('change', startScan);
+document.getElementById('fileInput').addEventListener('change', (e) => {
+  if (e.target.files[0]) document.getElementById('dropText').textContent = e.target.files[0].name;
+});
+
+// --- Step 2: verify ---
+function buildVerifyList() {
+  const el = document.getElementById('medList');
+  el.innerHTML = MEDS.map(m => `
+    <div class="med-item">
+      <div class="med-head">
+        <span class="med-name">${m.name}</span>
+        ${confBadge(m.confidence)}
+      </div>
+      <div class="med-detail">${m.raw}</div>
+      ${m.flag ? '<div class="med-flag">⚠ ' + m.flag.en + '</div>' : ''}
+    </div>
+  `).join('');
+}
+document.getElementById('toLangBtn').addEventListener('click', () => {
+  buildLangRow();
+  goTo('lang');
+});
+
+// --- Step 3: language ---
+function buildLangRow() {
+  const el = document.getElementById('langRow');
+  el.innerHTML = LANGS.map(l => `<button class="lang-btn" data-code="${l.code}">${l.label}</button>`).join('');
+  el.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      el.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      chosenLang = btn.dataset.code;
+      document.getElementById('toExplainBtn').disabled = false;
+    });
+  });
+}
+document.getElementById('toExplainBtn').addEventListener('click', () => {
+  buildExplainList();
+  goTo('explain');
+});
+
+// --- Step 4: explain ---
+function speak(text, langCode) {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const lang = LANGS.find(l => l.code === langCode);
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = lang ? lang.speech : 'en-IN';
+  window.speechSynthesis.speak(u);
+}
+function buildExplainList() {
+  const canSpeak = 'speechSynthesis' in window;
+  const el = document.getElementById('explainList');
+  el.innerHTML = MEDS.map(m => `
+    <div class="explain-item">
+      <div class="med-head">
+        <span class="med-name">${m.name}</span>
+        ${confBadge(m.confidence)}
+      </div>
+      <div class="explain-text">${m.text[chosenLang]}</div>
+      ${m.flag ? '<div class="med-flag">⚠ ' + m.flag[chosenLang] + '</div>' : ''}
+      <button class="speak-btn" data-id="${m.id}" ${canSpeak ? '' : 'disabled'}>
+        🔊 ${canSpeak ? 'Play aloud' : 'Voice not available in this browser'}
+      </button>
+    </div>
+  `).join('');
+  el.querySelectorAll('.speak-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const m = MEDS.find(x => x.id === btn.dataset.id);
+      speak(m.text[chosenLang] + (m.flag ? '. ' + m.flag[chosenLang] : ''), chosenLang);
+    });
+  });
+}
+document.getElementById('toConfirmBtn').addEventListener('click', () => {
+  buildConfirmList();
+  goTo('confirm');
+});
+
+// --- Step 5: confirm ---
+function buildConfirmList() {
+  confirmed = {};
+  const el = document.getElementById('confirmList');
+  el.innerHTML = MEDS.map(m => {
+    const label = m.confidence === 'uncertain'
+      ? "I'll confirm this one with my doctor or pharmacist"
+      : 'I understand how to take this';
+    const sub = m.confidence === 'uncertain' ? "We won't set a reminder for this until it's confirmed." : m.raw;
+    return `
+      <div class="med-item">
+        <div class="confirm-item">
+          <input type="checkbox" id="c-${m.id}" data-id="${m.id}">
+          <label for="c-${m.id}">${m.name} — ${label}<small>${sub}</small></label>
+        </div>
+      </div>`;
+  }).join('');
+  el.querySelectorAll('input[type=checkbox]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      confirmed[cb.dataset.id] = cb.checked;
+      const all = MEDS.every(m => confirmed[m.id]);
+      document.getElementById('toRemindBtn').disabled = !all;
+    });
+  });
+}
+document.getElementById('toRemindBtn').addEventListener('click', () => {
+  buildReminders();
+  goTo('remind');
+});
+
+// --- Step 6: reminders ---
+function buildReminders() {
+  const el = document.getElementById('reminderList');
+  const rows = [];
+  rows.push({ time: '8:00 AM', what: 'Paracetamol 500mg', note: 'after breakfast' });
+  rows.push({ time: '8:00 PM', what: 'Paracetamol 500mg', note: 'after dinner' });
+  rows.push({ time: '9:00 AM', what: 'Azithromycin 250mg', note: 'once daily, 3 days' });
+  el.innerHTML = rows.map(r => `
+    <div class="reminder-row">
+      <span class="reminder-time">${r.time}</span>
+      <span class="reminder-what"><b>${r.what}</b> — ${r.note}</span>
+    </div>
+  `).join('') + '<div class="reminder-row"><span class="reminder-time">—</span><span class="reminder-what">The unclear medicine is <b>not</b> scheduled until you confirm it with your doctor.</span></div>';
+}
+document.getElementById('restartBtn').addEventListener('click', () => {
+  chosenLang = null;
+  document.getElementById('dropText').textContent = 'Tap to choose a photo, or drag one here';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('toExplainBtn').disabled = true;
+  document.getElementById('toRemindBtn').disabled = true;
+  goTo('scan');
+});
+
+renderProgress();
+</script>
+</body>
+</html>
