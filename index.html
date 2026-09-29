@@ -391,8 +391,11 @@ async function startScan() {
   } catch (error) {
     console.error('OCR error:', error);
     document.getElementById('scanning').hidden = true;
-    alert('Something went wrong while reading the prescription.');
-  }
+    } catch (error) {
+  console.error('OCR error:', error);
+  document.getElementById('scanning').hidden = true;
+  alert('OCR error: ' + error.message);
+}
 }
 document.getElementById('sampleBtn').addEventListener('click', startScan);
 document.getElementById('fileInput').addEventListener('change', startScan);
