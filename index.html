@@ -353,13 +353,46 @@ function confBadge(level) {
 }
 
 // --- Step 1: scanning ---
-function startScan() {
+async function startScan() {
+  const fileInput = document.getElementById('fileInput');
+  const file = fileInput.files[0];
+
+  if (!file) {
+    alert('Please upload a prescription image first.');
+    return;
+  }
+
   document.getElementById('scanning').hidden = false;
-  setTimeout(() => {
+
+  try {
+    const result = await Tesseract.recognize(
+      file,
+      'eng',
+      {
+        logger: info => {
+          console.log(info);
+        }
+      }
+    );
+
+    const extractedText = result.data.text.trim();
+
+    console.log('OCR result:', extractedText);
+
     document.getElementById('scanning').hidden = true;
-    buildVerifyList();
-    goTo('verify');
-  }, 1100);
+
+    if (!extractedText) {
+      alert('MediBridge could not read any text from this image. Please try a clearer image.');
+      return;
+    }
+
+    alert('Prescription text detected!');
+
+  } catch (error) {
+    console.error('OCR error:', error);
+    document.getElementById('scanning').hidden = true;
+    alert('Something went wrong while reading the prescription.');
+  }
 }
 document.getElementById('sampleBtn').addEventListener('click', startScan);
 document.getElementById('fileInput').addEventListener('change', startScan);
