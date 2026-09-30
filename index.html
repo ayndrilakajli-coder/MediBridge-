@@ -460,18 +460,52 @@ document.getElementById('fileInput').addEventListener('change', (e) => {
 function buildVerifyList() {
   const el = document.getElementById('medList');
   if (window.ocrText) {
+  const review = renderOCRReview(window.ocrText);
+
   el.innerHTML = `
-  <div class="med-item">
-    <div class="med-head">
-      <span class="med-name">OCR Result</span>
+    <div class="med-item">
+      <div class="med-head">
+        <span class="med-name">⚠ Verify extracted information</span>
+      </div>
+      <div class="med-flag">
+        OCR can misread unclear text. MediBridge will not guess uncertain medicine names or doses.
+      </div>
     </div>
-    <div class="med-detail"></div>
-    <div class="med-flag">
-      ⚠ Please verify the extracted information. OCR can misread unclear text, so MediBridge will not guess uncertain medicine names or doses.
-    </div>
-  </div>
-`;
-el.querySelector('.med-detail').textContent = window.ocrText;
+
+    <h3>👤 Patient information</h3>
+    <div id="ocrPatient"></div>
+
+    <h3>💊 Medicine-related text detected</h3>
+    <div id="ocrMedicines"></div>
+
+    <h3>📝 Other instructions detected</h3>
+    <div id="ocrNotes"></div>
+
+    <h3>📄 Other text detected</h3>
+    <div id="ocrOther"></div>
+  `;
+
+  function addLines(containerId, lines) {
+    const container = document.getElementById(containerId);
+
+    if (lines.length === 0) {
+      container.textContent = 'No text detected in this category.';
+      return;
+    }
+
+    lines.forEach(line => {
+      const item = document.createElement('div');
+      item.className = 'med-item';
+      item.textContent = line;
+      container.appendChild(item);
+    });
+  }
+
+  addLines('ocrPatient', review.patientLines);
+  addLines('ocrMedicines', review.medicineLines);
+  addLines('ocrNotes', review.noteLines);
+  addLines('ocrOther', review.otherLines);
+
   return;
   }
   el.innerHTML = MEDS.map(m => `
