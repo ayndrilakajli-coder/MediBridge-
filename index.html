@@ -382,6 +382,8 @@ async function startScan() {
 
     const extractedText = result.data.text.trim();
     window.ocrText = extractedText;
+    buildVerifyList();
+goTo('verify');
     document.getElementById('scanning').hidden = true;
 
     if (!extractedText) {
