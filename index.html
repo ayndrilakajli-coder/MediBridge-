@@ -411,6 +411,10 @@ document.getElementById('fileInput').addEventListener('change', (e) => {
 // --- Step 2: verify ---
 function buildVerifyList() {
   const el = document.getElementById('medList');
+  if (window.ocrText) {
+  el.innerHTML = '<div class="med-item"><div class="med-head"><span class="med-name">OCR Result</span></div><div class="med-detail">' + window.ocrText.replace(/\n/g, '<br>') + '</div></div>';
+  return;
+  }
   el.innerHTML = MEDS.map(m => `
     <div class="med-item">
       <div class="med-head">
