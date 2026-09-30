@@ -413,7 +413,8 @@ document.getElementById('fileInput').addEventListener('change', (e) => {
 function buildVerifyList() {
   const el = document.getElementById('medList');
   if (window.ocrText) {
-  el.innerHTML = '<div class="med-item"><div class="med-head"><span class="med-name">OCR Result</span></div><div class="med-detail">' + window.ocrText.replace(/\n/g, '<br>') + '</div></div>';
+  el.innerHTML = '<div class="med-item"><div class="med-head"><span class="med-name">OCR Result</span></div><div class="med-detail"></div></div>';
+el.querySelector('.med-detail').textContent = window.ocrText;
   return;
   }
   el.innerHTML = MEDS.map(m => `
@@ -432,24 +433,7 @@ document.getElementById('toLangBtn').addEventListener('click', () => {
   goTo('lang');
 });
 
-// --- Step 2: verify ---
-function buildVerifyList() {
-  const el = document.getElementById('medList');
-  el.innerHTML = MEDS.map(m => `
-    <div class="med-item">
-      <div class="med-head">
-        <span class="med-name">${m.name}</span>
-        ${confBadge(m.confidence)}
-      </div>
-      <div class="med-detail">${m.raw}</div>
-      ${m.flag ? '<div class="med-flag">⚠ ' + m.flag.en + '</div>' : ''}
-    </div>
-  `).join('');
-}
-document.getElementById('toLangBtn').addEventListener('click', () => {
-  buildLangRow();
-  goTo('lang');
-});
+
 
 // --- Step 3: language ---
 function buildLangRow() {
