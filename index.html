@@ -399,9 +399,7 @@ async function startScan() {
 }
 }
 document.getElementById('sampleBtn').addEventListener('click', startScan);
-document.getElementById('fileInput').addEventListener('change', () => {
-  alert('FILE BUTTON WORKS!');
-});
+
 document.getElementById('fileInput').addEventListener('change', (e) => {
   if (e.target.files[0]) document.getElementById('dropText').textContent = e.target.files[0].name;
 });
