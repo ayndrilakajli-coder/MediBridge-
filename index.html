@@ -400,7 +400,54 @@ goTo('verify');
     alert('OCR error: ' + error.message);
   }
 }
-document.getElementById('sampleBtn').addEventListener('click', startScan);
+function renderOCRReview(text) {
+  const lines = text
+    .split(/\n+/)
+    .map(line => line.trim())
+    .filter(line => line.length > 0);
+
+  const patientLines = [];
+  const medicineLines = [];
+  const noteLines = [];
+  const otherLines = [];
+
+  lines.forEach(line => {
+    const lower = line.toLowerCase();
+
+    if (
+      lower.includes('patient name') ||
+      lower.includes('patient age') ||
+      lower.includes('age / sex') ||
+      lower.includes('date')
+    ) {
+      patientLines.push(line);
+    } else if (
+      /\b\d+\.\s/.test(line) ||
+      lower.includes('mg') ||
+      lower.includes('tablet') ||
+      lower.includes('capsule')
+    ) {
+      medicineLines.push(line);
+    } else if (
+      lower.includes('notes') ||
+      lower.includes('avoid') ||
+      lower.includes('drink') ||
+      lower.includes('persist')
+    ) {
+      noteLines.push(line);
+    } else {
+      otherLines.push(line);
+    }
+  });
+
+  return {
+    patientLines,
+    medicineLines,
+    noteLines,
+    otherLines
+  };
+  }
+  document.getElementById('sampleBtn').addEventListener('click', startScan);
 
 document.getElementById('fileInput').addEventListener('change', (e) => {
   if (e.target.files[0]) {
