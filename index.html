@@ -667,7 +667,11 @@ function buildExplainList() {
     });
   });
     }
-
+document.getElementById('toConfirmBtn').addEventListener('click', () => {
+  buildConfirmList();
+  goTo('confirm');
+});
+  
 // --- Step 5: confirm ---
 function buildConfirmList() {
   confirmed = {};
