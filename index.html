@@ -588,30 +588,117 @@ document.getElementById('toExplainBtn').addEventListener('click', () => {
     };
   }
 }
+function translateOCRLine(line, langCode) {
+  if (langCode === 'en') return line;
+
+  const lower = line.toLowerCase();
+
+  if (langCode === 'hi') {
+    if (lower.includes('amoxicillin'))
+      return 'Amoxicillin 500 mg — इस जानकारी की मूल प्रिस्क्रिप्शन से पुष्टि करें।';
+
+    if (lower.includes('paracetamol'))
+      return 'Paracetamol 650 mg — इस जानकारी की मूल प्रिस्क्रिप्शन से पुष्टि करें।';
+
+    if (lower.includes('cetirizine'))
+      return 'Cetirizine 10 mg — इस जानकारी की मूल प्रिस्क्रिप्शन से पुष्टि करें।';
+
+    if (lower.includes('omeprazole'))
+      return 'Omeprazole 20 mg — इस जानकारी की मूल प्रिस्क्रिप्शन से पुष्टि करें।';
+
+    if (lower.includes('drink') && lower.includes('water'))
+      return 'पर्याप्त पानी पीने की सलाह दी गई है।';
+
+    if (lower.includes('avoid') &&
+        (lower.includes('spicy') || lower.includes('oily')))
+      return 'बहुत मसालेदार या तैलीय भोजन से बचने की सलाह दी गई है।';
+
+    if (lower.includes('persist') || lower.includes('review'))
+      return 'लक्षण बने रहने पर डॉक्टर से दोबारा सलाह लेने की बात लिखी है।';
+
+    return 'पर्ची से यह जानकारी पढ़ी गई है। कृपया मूल पर्ची से इसकी पुष्टि करें।';
+  }
+
+  if (langCode === 'bn') {
+    if (lower.includes('amoxicillin'))
+      return 'Amoxicillin 500 mg — এই তথ্যটি মূল প্রেসক্রিপশন থেকে যাচাই করুন।';
+
+    if (lower.includes('paracetamol'))
+      return 'Paracetamol 650 mg — এই তথ্যটি মূল প্রেসক্রিপশন থেকে যাচাই করুন।';
+
+    if (lower.includes('cetirizine'))
+      return 'Cetirizine 10 mg — এই তথ্যটি মূল প্রেসক্রিপশন থেকে যাচাই করুন।';
+
+    if (lower.includes('omeprazole'))
+      return 'Omeprazole 20 mg — এই তথ্যটি মূল প্রেসক্রিপশন থেকে যাচাই করুন।';
+
+    if (lower.includes('drink') && lower.includes('water'))
+      return 'পর্যাপ্ত জল পান করার পরামর্শ দেওয়া হয়েছে।';
+
+    if (lower.includes('avoid') &&
+        (lower.includes('spicy') || lower.includes('oily')))
+      return 'অতিরিক্ত ঝাল বা তেলযুক্ত খাবার এড়িয়ে চলার পরামর্শ দেওয়া হয়েছে।';
+
+    if (lower.includes('persist') || lower.includes('review'))
+      return 'উপসর্গ থেকে গেলে আবার ডাক্তারের পরামর্শ নেওয়ার কথা লেখা আছে।';
+
+    return 'প্রেসক্রিপশন থেকে এই তথ্যটি পড়া হয়েছে। অনুগ্রহ করে মূল প্রেসক্রিপশন থেকে যাচাই করুন।';
+  }
+
+  return line;
+}
+
 function buildExplainList() {
   const el = document.getElementById('explainList');
 
-  // If this came from a real OCR scan, show the extracted text
-  // instead of the old mock MEDS data.
   if (window.ocrText) {
     const review = renderOCRReview(window.ocrText);
+    const canSpeak = 'speechSynthesis' in window;
+
+    const uiText = {
+      en: {
+        title: '⚠ OCR-based explanation',
+        warning: 'These are the words MediBridge detected from the prescription. Always confirm unclear information with a doctor or pharmacist.',
+        medicines: '💊 Medicine-related information',
+        notes: '📝 Other instructions',
+        none: 'No text detected in this category.',
+        play: '🔊 Play aloud'
+      },
+
+      hi: {
+        title: '⚠ OCR से मिली जानकारी',
+        warning: 'MediBridge ने प्रिस्क्रिप्शन से यह जानकारी पढ़ी है। अस्पष्ट जानकारी की पुष्टि डॉक्टर या फार्मासिस्ट से करें।',
+        medicines: '💊 दवा से जुड़ी जानकारी',
+        notes: '📝 अन्य निर्देश',
+        none: 'इस श्रेणी में कोई टेक्स्ट नहीं मिला।',
+        play: '🔊 सुनें'
+      },
+
+      bn: {
+        title: '⚠ OCR থেকে পাওয়া তথ্য',
+        warning: 'MediBridge প্রেসক্রিপশন থেকে এই তথ্য পড়েছে। অস্পষ্ট তথ্য ডাক্তার বা ফার্মাসিস্টের সঙ্গে যাচাই করুন।',
+        medicines: '💊 ওষুধ সম্পর্কিত তথ্য',
+        notes: '📝 অন্যান্য নির্দেশ',
+        none: 'এই বিভাগে কোনো লেখা পাওয়া যায়নি।',
+        play: '🔊 শুনুন'
+      }
+    };
+
+    const t = uiText[chosenLang] || uiText.en;
 
     el.innerHTML = `
       <div class="med-item">
         <div class="med-head">
-          <span class="med-name">⚠ OCR-based explanation</span>
+          <span class="med-name">${t.title}</span>
         </div>
 
-        <div class="med-flag">
-          These are the words MediBridge detected from the prescription.
-          Always confirm unclear information with a doctor or pharmacist.
-        </div>
+        <div class="med-flag">${t.warning}</div>
       </div>
 
-      <h3>💊 Medicine-related information</h3>
+      <h3>${t.medicines}</h3>
       <div id="ocrExplainMedicines"></div>
 
-      <h3>📝 Other instructions</h3>
+      <h3>${t.notes}</h3>
       <div id="ocrExplainNotes"></div>
     `;
 
@@ -619,14 +706,33 @@ function buildExplainList() {
       const container = document.getElementById(containerId);
 
       if (lines.length === 0) {
-        container.textContent = 'No text detected in this category.';
+        container.textContent = t.none;
         return;
       }
 
       lines.forEach(line => {
+        const translated = translateOCRLine(line, chosenLang);
+
         const item = document.createElement('div');
         item.className = 'explain-item';
-        item.textContent = line;
+
+        const text = document.createElement('div');
+        text.className = 'explain-text';
+        text.textContent = translated;
+
+        item.appendChild(text);
+
+        const button = document.createElement('button');
+        button.className = 'speak-btn';
+        button.type = 'button';
+        button.textContent = canSpeak ? t.play : 'Voice not available in this browser';
+        button.disabled = !canSpeak;
+
+        button.addEventListener('click', () => {
+          speak(translated, chosenLang);
+        });
+
+        item.appendChild(button);
         container.appendChild(item);
       });
     }
@@ -637,7 +743,6 @@ function buildExplainList() {
     return;
   }
 
-  // Fallback for the original demo data
   const canSpeak = 'speechSynthesis' in window;
 
   el.innerHTML = MEDS.map(m => `
@@ -660,13 +765,15 @@ function buildExplainList() {
   el.querySelectorAll('.speak-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const m = MEDS.find(x => x.id === btn.dataset.id);
+
       speak(
         m.text[chosenLang] + (m.flag ? '. ' + m.flag[chosenLang] : ''),
         chosenLang
       );
     });
   });
-    }
+}
+
 document.getElementById('toConfirmBtn').addEventListener('click', () => {
   buildConfirmList();
   goTo('confirm');
