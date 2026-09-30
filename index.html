@@ -381,20 +381,19 @@ async function startScan() {
     );
 
     const extractedText = result.data.text.trim();
-    window.ocrText = extractedText;
-    buildVerifyList();
+window.ocrText = extractedText;
+
+document.getElementById('scanning').hidden = true;
+
+if (!extractedText) {
+  alert('MediBridge could not read any text from this image. Please try a clearer image.');
+  return;
+}
+
+console.log('OCR result:', extractedText);
+
+buildVerifyList();
 goTo('verify');
-    document.getElementById('scanning').hidden = true;
-
-    if (!extractedText) {
-      alert('MediBridge could not read any text from this image. Please try a clearer image.');
-      return;
-    }
-
-    console.log('OCR result:', extractedText);
-    window.ocrText = extractedText;
-    alert('Prescription text detected!\n\n' + extractedText);
-
   } catch (error) {
     console.error('OCR error:', error);
     document.getElementById('scanning').hidden = true;
