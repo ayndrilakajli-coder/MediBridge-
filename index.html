@@ -391,8 +391,7 @@ async function startScan() {
 
     console.log('OCR result:', extractedText);
 
-    document.getElementById('ocrResult').textContent = extractedText;
-goTo('verify');
+    alert('Prescription text detected!\n\n' + extractedText);
 
   } catch (error) {
     console.error('OCR error:', error);
