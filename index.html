@@ -589,32 +589,84 @@ document.getElementById('toExplainBtn').addEventListener('click', () => {
   }
 }
 function buildExplainList() {
-  const canSpeak = 'speechSynthesis' in window;
   const el = document.getElementById('explainList');
+
+  // If this came from a real OCR scan, show the extracted text
+  // instead of the old mock MEDS data.
+  if (window.ocrText) {
+    const review = renderOCRReview(window.ocrText);
+
+    el.innerHTML = `
+      <div class="med-item">
+        <div class="med-head">
+          <span class="med-name">⚠ OCR-based explanation</span>
+        </div>
+
+        <div class="med-flag">
+          These are the words MediBridge detected from the prescription.
+          Always confirm unclear information with a doctor or pharmacist.
+        </div>
+      </div>
+
+      <h3>💊 Medicine-related information</h3>
+      <div id="ocrExplainMedicines"></div>
+
+      <h3>📝 Other instructions</h3>
+      <div id="ocrExplainNotes"></div>
+    `;
+
+    function addLines(containerId, lines) {
+      const container = document.getElementById(containerId);
+
+      if (lines.length === 0) {
+        container.textContent = 'No text detected in this category.';
+        return;
+      }
+
+      lines.forEach(line => {
+        const item = document.createElement('div');
+        item.className = 'explain-item';
+        item.textContent = line;
+        container.appendChild(item);
+      });
+    }
+
+    addLines('ocrExplainMedicines', review.medicineLines);
+    addLines('ocrExplainNotes', review.noteLines);
+
+    return;
+  }
+
+  // Fallback for the original demo data
+  const canSpeak = 'speechSynthesis' in window;
+
   el.innerHTML = MEDS.map(m => `
     <div class="explain-item">
       <div class="med-head">
         <span class="med-name">${m.name}</span>
         ${confBadge(m.confidence)}
       </div>
+
       <div class="explain-text">${m.text[chosenLang]}</div>
+
       ${m.flag ? '<div class="med-flag">⚠ ' + m.flag[chosenLang] + '</div>' : ''}
+
       <button class="speak-btn" data-id="${m.id}" ${canSpeak ? '' : 'disabled'}>
         🔊 ${canSpeak ? 'Play aloud' : 'Voice not available in this browser'}
       </button>
     </div>
   `).join('');
+
   el.querySelectorAll('.speak-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const m = MEDS.find(x => x.id === btn.dataset.id);
-      speak(m.text[chosenLang] + (m.flag ? '. ' + m.flag[chosenLang] : ''), chosenLang);
+      speak(
+        m.text[chosenLang] + (m.flag ? '. ' + m.flag[chosenLang] : ''),
+        chosenLang
+      );
     });
   });
-}
-document.getElementById('toConfirmBtn').addEventListener('click', () => {
-  buildConfirmList();
-  goTo('confirm');
-});
+    }
 
 // --- Step 5: confirm ---
 function buildConfirmList() {
