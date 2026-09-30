@@ -672,27 +672,83 @@ function buildExplainList() {
 function buildConfirmList() {
   confirmed = {};
   const el = document.getElementById('confirmList');
+
+  if (window.ocrText) {
+    const review = renderOCRReview(window.ocrText);
+
+    if (review.medicineLines.length === 0) {
+      el.innerHTML = `
+        <div class="med-item">
+          <div class="med-flag">
+            No medicine-related text was detected. MediBridge cannot set medication reminders from this scan.
+          </div>
+        </div>
+      `;
+      document.getElementById('toRemindBtn').disabled = true;
+      return;
+    }
+
+    el.innerHTML = review.medicineLines.map((line, index) => {
+      const id = 'ocr-' + index;
+      confirmed[id] = false;
+
+      return `
+        <div class="med-item">
+          <div class="confirm-item">
+            <input type="checkbox" id="c-${id}" data-id="${id}">
+            <label for="c-${id}">
+              I have checked this extracted information
+              <small>${line}</small>
+            </label>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    el.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        confirmed[cb.dataset.id] = cb.checked;
+
+        const all = Object.values(confirmed).every(Boolean);
+        document.getElementById('toRemindBtn').disabled = !all;
+      });
+    });
+
+    return;
+  }
+
+  // Original demo fallback
   el.innerHTML = MEDS.map(m => {
     const label = m.confidence === 'uncertain'
       ? "I'll confirm this one with my doctor or pharmacist"
       : 'I understand how to take this';
-    const sub = m.confidence === 'uncertain' ? "We won't set a reminder for this until it's confirmed." : m.raw;
+
+    const sub = m.confidence === 'uncertain'
+      ? "We won't set a reminder for this until it's confirmed."
+      : m.raw;
+
     return `
       <div class="med-item">
         <div class="confirm-item">
           <input type="checkbox" id="c-${m.id}" data-id="${m.id}">
-          <label for="c-${m.id}">${m.name} — ${label}<small>${sub}</small></label>
+          <label for="c-${m.id}">
+            ${m.name} — ${label}
+            <small>${sub}</small>
+          </label>
         </div>
-      </div>`;
+      </div>
+    `;
   }).join('');
+
   el.querySelectorAll('input[type=checkbox]').forEach(cb => {
     cb.addEventListener('change', () => {
       confirmed[cb.dataset.id] = cb.checked;
+
       const all = MEDS.every(m => confirmed[m.id]);
       document.getElementById('toRemindBtn').disabled = !all;
     });
   });
-}
+        }
 document.getElementById('toRemindBtn').addEventListener('click', () => {
   buildReminders();
   goTo('remind');
@@ -701,27 +757,66 @@ document.getElementById('toRemindBtn').addEventListener('click', () => {
 // --- Step 6: reminders ---
 function buildReminders() {
   const el = document.getElementById('reminderList');
+
+  if (window.ocrText) {
+    const review = renderOCRReview(window.ocrText);
+
+    if (review.medicineLines.length === 0) {
+      el.innerHTML = `
+        <div class="reminder-row">
+          <span class="reminder-time">—</span>
+          <span class="reminder-what">
+            No medicine-related information was detected clearly enough to create reminders.
+          </span>
+        </div>
+      `;
+      return;
+    }
+
+    el.innerHTML = `
+      <div class="med-item">
+        <div class="med-flag">
+          ⚠ Reminders are not automatically scheduled from OCR text.
+          Please confirm the medicine name, dose, and timing with your doctor or pharmacist before setting a reminder.
+        </div>
+      </div>
+
+      <h3>💊 Verified prescription information</h3>
+      ${review.medicineLines.map(line => `
+        <div class="reminder-row">
+          <span class="reminder-time">—</span>
+          <span class="reminder-what">${line}</span>
+        </div>
+      `).join('')}
+
+      <div class="reminder-row">
+        <span class="reminder-time">✓</span>
+        <span class="reminder-what">
+          No reminder has been scheduled automatically.
+        </span>
+      </div>
+    `;
+
+    return;
+  }
+
+  // Original demo fallback
   const rows = [];
   rows.push({ time: '8:00 AM', what: 'Paracetamol 500mg', note: 'after breakfast' });
   rows.push({ time: '8:00 PM', what: 'Paracetamol 500mg', note: 'after dinner' });
   rows.push({ time: '9:00 AM', what: 'Azithromycin 250mg', note: 'once daily, 3 days' });
+
   el.innerHTML = rows.map(r => `
     <div class="reminder-row">
       <span class="reminder-time">${r.time}</span>
       <span class="reminder-what"><b>${r.what}</b> — ${r.note}</span>
     </div>
-  `).join('') + '<div class="reminder-row"><span class="reminder-time">—</span><span class="reminder-what">The unclear medicine is <b>not</b> scheduled until you confirm it with your doctor.</span></div>';
-}
-document.getElementById('restartBtn').addEventListener('click', () => {
-  chosenLang = null;
-  document.getElementById('dropText').textContent = 'Tap to choose a photo, or drag one here';
-  document.getElementById('fileInput').value = '';
-  document.getElementById('toExplainBtn').disabled = true;
-  document.getElementById('toRemindBtn').disabled = true;
-  goTo('scan');
-});
-
-renderProgress();
-</script>
-</body>
-</html>
+  `).join('') + `
+    <div class="reminder-row">
+      <span class="reminder-time">—</span>
+      <span class="reminder-what">
+        The unclear medicine is <b>not</b> scheduled until you confirm it with your doctor.
+      </span>
+    </div>
+  `;
+  }
