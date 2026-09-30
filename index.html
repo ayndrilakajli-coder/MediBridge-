@@ -653,7 +653,7 @@ function buildExplainList() {
 
   if (window.ocrText) {
     const review = renderOCRReview(window.ocrText);
-    const canSpeak = 'speechSynthesis' in window;
+    const canSpeak = 'speechSynthesis' in window && chosenLang !== 'bn';
 
     const uiText = {
       en: {
