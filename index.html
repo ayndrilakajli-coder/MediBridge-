@@ -381,7 +381,7 @@ async function startScan() {
     );
 
     const extractedText = result.data.text.trim();
-
+    window.ocrText = extractedText;
     document.getElementById('scanning').hidden = true;
 
     if (!extractedText) {
@@ -390,7 +390,7 @@ async function startScan() {
     }
 
     console.log('OCR result:', extractedText);
-
+    window.ocrText = extractedText;
     alert('Prescription text detected!\n\n' + extractedText);
 
   } catch (error) {
