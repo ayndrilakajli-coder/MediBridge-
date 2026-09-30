@@ -413,7 +413,17 @@ document.getElementById('fileInput').addEventListener('change', (e) => {
 function buildVerifyList() {
   const el = document.getElementById('medList');
   if (window.ocrText) {
-  el.innerHTML = '<div class="med-item"><div class="med-head"><span class="med-name">OCR Result</span></div><div class="med-detail"></div></div>';
+  el.innerHTML = `
+  <div class="med-item">
+    <div class="med-head">
+      <span class="med-name">OCR Result</span>
+    </div>
+    <div class="med-detail"></div>
+    <div class="med-flag">
+      ⚠ Please verify the extracted information. OCR can misread unclear text, so MediBridge will not guess uncertain medicine names or doses.
+    </div>
+  </div>
+`;
 el.querySelector('.med-detail').textContent = window.ocrText;
   return;
   }
