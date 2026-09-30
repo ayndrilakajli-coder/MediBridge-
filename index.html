@@ -872,13 +872,36 @@ function buildReminders() {
   if (window.ocrText) {
     const review = renderOCRReview(window.ocrText);
 
+    const uiText = {
+      en: {
+        warning: '⚠ The information below comes from the OCR scan. No reminder is scheduled automatically. Confirm the medicine name, dose and timing with a doctor or pharmacist.',
+        heading: '💊 Confirmed prescription information',
+        none: 'No medicine-related information was detected clearly enough to create a reminder.',
+        final: '✓ No reminder has been scheduled automatically.'
+      },
+
+      hi: {
+        warning: '⚠ नीचे दी गई जानकारी OCR स्कैन से मिली है। कोई रिमाइंडर अपने आप निर्धारित नहीं किया गया है। दवा का नाम, मात्रा और समय डॉक्टर या फार्मासिस्ट से पुष्टि करें।',
+        heading: '💊 पुष्टि की गई प्रिस्क्रिप्शन जानकारी',
+        none: 'रिमाइंडर बनाने के लिए पर्याप्त स्पष्ट दवा संबंधी जानकारी नहीं मिली।',
+        final: '✓ कोई रिमाइंडर अपने आप निर्धारित नहीं किया गया है।'
+      },
+
+      bn: {
+        warning: '⚠ নিচের তথ্য OCR স্ক্যান থেকে পাওয়া গেছে। কোনো রিমাইন্ডার স্বয়ংক্রিয়ভাবে নির্ধারণ করা হয়নি। ওষুধের নাম, মাত্রা ও সময় ডাক্তার বা ফার্মাসিস্টের সঙ্গে যাচাই করুন।',
+        heading: '💊 যাচাই করা প্রেসক্রিপশন তথ্য',
+        none: 'রিমাইন্ডার তৈরি করার মতো যথেষ্ট পরিষ্কার ওষুধের তথ্য পাওয়া যায়নি।',
+        final: '✓ কোনো রিমাইন্ডার স্বয়ংক্রিয়ভাবে নির্ধারণ করা হয়নি।'
+      }
+    };
+
+    const t = uiText[chosenLang] || uiText.en;
+
     if (review.medicineLines.length === 0) {
       el.innerHTML = `
         <div class="reminder-row">
           <span class="reminder-time">—</span>
-          <span class="reminder-what">
-            No medicine-related information was detected clearly enough to create reminders.
-          </span>
+          <span class="reminder-what">${t.none}</span>
         </div>
       `;
       return;
@@ -887,23 +910,23 @@ function buildReminders() {
     el.innerHTML = `
       <div class="med-item">
         <div class="med-flag">
-          ⚠ Reminders are not automatically scheduled from OCR text.
-          Please confirm the medicine name, dose, and timing with your doctor or pharmacist before setting a reminder.
+          ${t.warning}
         </div>
       </div>
 
-      <h3>💊 Verified prescription information</h3>
+      <h3>${t.heading}</h3>
+
       ${review.medicineLines.map(line => `
         <div class="reminder-row">
           <span class="reminder-time">—</span>
-          <span class="reminder-what">${line}</span>
+          <span class="reminder-what">${translateOCRLine(line, chosenLang)}</span>
         </div>
       `).join('')}
 
       <div class="reminder-row">
         <span class="reminder-time">✓</span>
         <span class="reminder-what">
-          No reminder has been scheduled automatically.
+          ${t.final}
         </span>
       </div>
     `;
@@ -930,7 +953,7 @@ function buildReminders() {
       </span>
     </div>
   `;
-  }
+        }
 </script>
 </body>
 </html>
