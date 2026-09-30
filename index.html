@@ -354,7 +354,6 @@ function confBadge(level) {
 
 // --- Step 1: scanning ---
 async function startScan() {
-  alert("startScan triggered!");
   const fileInput = document.getElementById('fileInput');
   const file = fileInput.files[0];
 
@@ -366,6 +365,10 @@ async function startScan() {
   document.getElementById('scanning').hidden = false;
 
   try {
+    if (typeof Tesseract === 'undefined') {
+      throw new Error('OCR library did not load.');
+    }
+
     const result = await Tesseract.recognize(
       file,
       'eng',
@@ -378,8 +381,6 @@ async function startScan() {
 
     const extractedText = result.data.text.trim();
 
-    console.log('OCR result:', extractedText);
-
     document.getElementById('scanning').hidden = true;
 
     if (!extractedText) {
@@ -387,16 +388,15 @@ async function startScan() {
       return;
     }
 
-    alert('Prescription text detected!');
+    console.log('OCR result:', extractedText);
+
+    alert('Prescription text detected!\n\n' + extractedText);
 
   } catch (error) {
     console.error('OCR error:', error);
     document.getElementById('scanning').hidden = true;
-    } catch (error) {
-  console.error('OCR error:', error);
-  document.getElementById('scanning').hidden = true;
-  alert('OCR error: ' + error.message);
-}
+    alert('OCR error: ' + error.message);
+  }
 }
 document.getElementById('sampleBtn').addEventListener('click', startScan);
 
