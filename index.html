@@ -606,29 +606,45 @@ function translateOCRLine(line, langCode) {
   const lower = line.toLowerCase();
 
   if (langCode === 'hi') {
-    if (lower.includes('amoxicillin'))
-      return 'Amoxicillin 500 mg — इस जानकारी की मूल प्रिस्क्रिप्शन से पुष्टि करें।';
+  if (lower.includes('paracetamol'))
+    return 'Paracetamol 500 mg — इस जानकारी की मूल प्रिस्क्रिप्शन से पुष्टि करें।';
 
-    if (lower.includes('paracetamol'))
-      return 'Paracetamol 650 mg — इस जानकारी की मूल प्रिस्क्रिप्शन से पुष्टि करें।';
+  if (lower.includes('azithromycin'))
+    return 'Azithromycin 250 mg — इस जानकारी की मूल प्रिस्क्रिप्शन से पुष्टि करें।';
 
-    if (lower.includes('cetirizine'))
-      return 'Cetirizine 10 mg — इस जानकारी की मूल प्रिस्क्रिप्शन से पुष्टि करें।';
+  if (lower.includes('cetirizine'))
+    return 'Cetirizine 10 mg — इस जानकारी की मूल प्रिस्क्रिप्शन से पुष्टि करें।';
 
-    if (lower.includes('omeprazole'))
-      return 'Omeprazole 20 mg — इस जानकारी की मूल प्रिस्क्रिप्शन से पुष्टि करें।';
+  if (lower.includes('ors') || lower.includes('oral rehydration'))
+    return 'ORS (ओरल रिहाइड्रेशन सॉल्ट्स) — इस जानकारी की मूल प्रिस्क्रिप्शन से पुष्टि करें।';
 
-    if (lower.includes('drink') && lower.includes('water'))
-      return 'पर्याप्त पानी पीने की सलाह दी गई है।';
+  if (lower.includes('take 1 tablet') &&
+      lower.includes('500 mg') &&
+      lower.includes('twice daily') &&
+      lower.includes('after food'))
+    return '1 टैबलेट (500 mg) दिन में दो बार भोजन के बाद लेने की बात लिखी है।';
 
-    if (lower.includes('avoid') &&
-        (lower.includes('spicy') || lower.includes('oily')))
-      return 'बहुत मसालेदार या तैलीय भोजन से बचने की सलाह दी गई है।';
+  if (lower.includes('take 2 tablets') &&
+      lower.includes('day 1') &&
+      lower.includes('once daily'))
+    return 'पहले दिन 2 टैबलेट, फिर दिन में एक बार 1 टैबलेट लेने की बात लिखी है।';
 
-    if (lower.includes('persist') || lower.includes('review'))
-      return 'लक्षण बने रहने पर डॉक्टर से दोबारा सलाह लेने की बात लिखी है।';
+  if (lower.includes('take 1 tablet') &&
+      lower.includes('at night') &&
+      lower.includes('5 days'))
+    return '5 दिनों तक रात में 1 टैबलेट लेने की बात लिखी है।';
 
-    return line;
+  if (lower.includes('drink') && lower.includes('water'))
+    return 'पर्याप्त पानी पीने की सलाह दी गई है।';
+
+  if (lower.includes('avoid') &&
+      (lower.includes('spicy') || lower.includes('oily')))
+    return 'बहुत मसालेदार या तैलीय भोजन से बचने की सलाह दी गई है।';
+
+  if (lower.includes('persist') || lower.includes('review'))
+    return 'लक्षण बने रहने पर डॉक्टर से दोबारा सलाह लेने की बात लिखी है।';
+
+  return line;
   }
 
   if (langCode === 'bn') {
