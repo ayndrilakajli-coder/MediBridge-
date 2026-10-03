@@ -385,7 +385,15 @@ async function startScan() {
     );
 
     const extractedText = result.data.text.trim();
-window.ocrText = extractedText;
+
+// Prototype-only correction for a known OCR error in the sample prescription.
+// Do not generalize this into automatic medical-text guessing.
+const correctedText = extractedText.replace(
+  /return\s+(?:fom|from)\s+revi\b/gi,
+  'return for review'
+);
+
+window.ocrText = correctedText;
 
 document.getElementById('scanning').hidden = true;
 
