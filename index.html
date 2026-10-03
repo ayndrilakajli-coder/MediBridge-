@@ -628,7 +628,7 @@ function translateOCRLine(line, langCode) {
     if (lower.includes('persist') || lower.includes('review'))
       return 'लक्षण बने रहने पर डॉक्टर से दोबारा सलाह लेने की बात लिखी है।';
 
-    return 'पर्ची से यह जानकारी पढ़ी गई है। कृपया मूल पर्ची से इसकी पुष्टि करें।';
+    return line;
   }
 
   if (langCode === 'bn') {
