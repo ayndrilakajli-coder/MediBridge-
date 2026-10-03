@@ -648,32 +648,49 @@ function translateOCRLine(line, langCode) {
   }
 
   if (langCode === 'bn') {
-    if (lower.includes('amoxicillin'))
-      return 'Amoxicillin 500 mg — এই তথ্যটি মূল প্রেসক্রিপশন থেকে যাচাই করুন।';
+  if (lower.includes('amoxicillin'))
+    return 'Amoxicillin — এই তথ্যটি মূল প্রেসক্রিপশন থেকে যাচাই করুন।';
 
-    if (lower.includes('paracetamol'))
-      return 'Paracetamol 650 mg — এই তথ্যটি মূল প্রেসক্রিপশন থেকে যাচাই করুন।';
+  if (lower.includes('paracetamol'))
+    return 'Paracetamol — এই তথ্যটি মূল প্রেসক্রিপশন থেকে যাচাই করুন।';
 
-    if (lower.includes('cetirizine'))
-      return 'Cetirizine 10 mg — এই তথ্যটি মূল প্রেসক্রিপশন থেকে যাচাই করুন।';
+  if (lower.includes('azithromycin'))
+    return 'Azithromycin — এই তথ্যটি মূল প্রেসক্রিপশন থেকে যাচাই করুন।';
 
-    if (lower.includes('omeprazole'))
-      return 'Omeprazole 20 mg — এই তথ্যটি মূল প্রেসক্রিপশন থেকে যাচাই করুন।';
+  if (lower.includes('cetirizine'))
+    return 'Cetirizine — এই তথ্যটি মূল প্রেসক্রিপশন থেকে যাচাই করুন।';
 
-    if (lower.includes('drink') && lower.includes('water'))
-      return 'পর্যাপ্ত জল পান করার পরামর্শ দেওয়া হয়েছে।';
+  if (lower.includes('ors') || lower.includes('oral rehydration'))
+    return 'ORS (ওরাল রিহাইড্রেশন সল্টস) — এই তথ্যটি মূল প্রেসক্রিপশন থেকে যাচাই করুন।';
 
-    if (lower.includes('avoid') &&
-        (lower.includes('spicy') || lower.includes('oily')))
-      return 'অতিরিক্ত ঝাল বা তেলযুক্ত খাবার এড়িয়ে চলার পরামর্শ দেওয়া হয়েছে।';
+  if (lower.includes('take 1 tablet') &&
+      lower.includes('500 mg') &&
+      lower.includes('twice daily') &&
+      lower.includes('after food'))
+    return '১টি ট্যাবলেট (500 mg) দিনে দুইবার খাবারের পরে নেওয়ার কথা লেখা আছে।';
 
-    if (lower.includes('persist') || lower.includes('review'))
-      return 'উপসর্গ থেকে গেলে আবার ডাক্তারের পরামর্শ নেওয়ার কথা লেখা আছে।';
+  if (lower.includes('take 2 tablets') &&
+      lower.includes('day 1') &&
+      lower.includes('once daily'))
+    return 'প্রথম দিনে ২টি ট্যাবলেট, তারপর দিনে একবার ১টি ট্যাবলেট নেওয়ার কথা লেখা আছে।';
 
-    
+  if (lower.includes('take 1 tablet') &&
+      lower.includes('at night') &&
+      lower.includes('5 days'))
+    return '৫ দিন রাতে ১টি ট্যাবলেট নেওয়ার কথা লেখা আছে।';
+
+  if (lower.includes('drink') && lower.includes('water'))
+    return 'পর্যাপ্ত জল পান করার পরামর্শ দেওয়া হয়েছে।';
+
+  if (lower.includes('avoid') &&
+      (lower.includes('spicy') || lower.includes('oily')))
+    return 'অতিরিক্ত ঝাল বা তেলযুক্ত খাবার এড়িয়ে চলার পরামর্শ দেওয়া হয়েছে।';
+
+  if (lower.includes('persist') || lower.includes('review'))
+    return 'উপসর্গ থেকে গেলে আবার ডাক্তারের পরামর্শ নেওয়ার কথা লেখা আছে।';
 
   return line;
-   }
+  }
  }
 function buildExplainList() {
   const el = document.getElementById('explainList');
