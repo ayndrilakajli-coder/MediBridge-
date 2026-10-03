@@ -878,24 +878,33 @@ function buildReminders() {
 
     const uiText = {
       en: {
-        warning: '⚠ The information below comes from the OCR scan. No reminder is scheduled automatically. Confirm the medicine name, dose and timing with a doctor or pharmacist.',
-        heading: '💊 Confirmed prescription information',
-        none: 'No medicine-related information was detected clearly enough to create a reminder.',
-        final: '✓ No reminder has been scheduled automatically.'
+        warning: 'Review the confirmed information below. Choose a reminder time yourself — MediBridge never invents a schedule.',
+        heading: '💊 Confirmed medicines',
+        none: 'No confirmed medicine information was detected.',
+        choose: 'Choose reminder time',
+        set: 'Set reminder',
+        scheduled: '✓ Reminder set for',
+        reminderNote: 'Prototype reminder — keep MediBridge open for the reminder to trigger.'
       },
 
       hi: {
-        warning: '⚠ नीचे दी गई जानकारी OCR स्कैन से मिली है। कोई रिमाइंडर अपने आप निर्धारित नहीं किया गया है। दवा का नाम, मात्रा और समय डॉक्टर या फार्मासिस्ट से पुष्टि करें।',
-        heading: '💊 पुष्टि की गई प्रिस्क्रिप्शन जानकारी',
-        none: 'रिमाइंडर बनाने के लिए पर्याप्त स्पष्ट दवा संबंधी जानकारी नहीं मिली।',
-        final: '✓ कोई रिमाइंडर अपने आप निर्धारित नहीं किया गया है।'
+        warning: 'नीचे दी गई पुष्टि की गई जानकारी देखें। रिमाइंडर का समय आप स्वयं चुनें — MediBridge अपने आप समय नहीं बनाता।',
+        heading: '💊 पुष्टि की गई दवाएँ',
+        none: 'पुष्टि की गई दवा की जानकारी नहीं मिली।',
+        choose: 'रिमाइंडर का समय चुनें',
+        set: 'रिमाइंडर सेट करें',
+        scheduled: '✓ रिमाइंडर सेट किया गया:',
+        reminderNote: 'प्रोटोटाइप रिमाइंडर — रिमाइंडर चलने के लिए MediBridge खुला रखें।'
       },
 
       bn: {
-        warning: '⚠ নিচের তথ্য OCR স্ক্যান থেকে পাওয়া গেছে। কোনো রিমাইন্ডার স্বয়ংক্রিয়ভাবে নির্ধারণ করা হয়নি। ওষুধের নাম, মাত্রা ও সময় ডাক্তার বা ফার্মাসিস্টের সঙ্গে যাচাই করুন।',
-        heading: '💊 যাচাই করা প্রেসক্রিপশন তথ্য',
-        none: 'রিমাইন্ডার তৈরি করার মতো যথেষ্ট পরিষ্কার ওষুধের তথ্য পাওয়া যায়নি।',
-        final: '✓ কোনো রিমাইন্ডার স্বয়ংক্রিয়ভাবে নির্ধারণ করা হয়নি।'
+        warning: 'নিচের নিশ্চিত করা তথ্য দেখুন। রিমাইন্ডারের সময় আপনি নিজেই বেছে নিন — MediBridge নিজে থেকে কোনো সময় ঠিক করে না।',
+        heading: '💊 নিশ্চিত করা ওষুধ',
+        none: 'নিশ্চিত করা ওষুধের কোনো তথ্য পাওয়া যায়নি।',
+        choose: 'রিমাইন্ডারের সময় বেছে নিন',
+        set: 'রিমাইন্ডার সেট করুন',
+        scheduled: '✓ রিমাইন্ডার সেট হয়েছে:',
+        reminderNote: 'প্রোটোটাইপ রিমাইন্ডার — রিমাইন্ডার চালু রাখতে MediBridge খোলা রাখুন।'
       }
     };
 
@@ -920,29 +929,127 @@ function buildReminders() {
 
       <h3>${t.heading}</h3>
 
-      ${review.medicineLines.map(line => `
-        <div class="reminder-row">
-          <span class="reminder-time">—</span>
-          <span class="reminder-what">${translateOCRLine(line, chosenLang)}</span>
-        </div>
-      `).join('')}
-
-      <div class="reminder-row">
-        <span class="reminder-time">✓</span>
-        <span class="reminder-what">
-          ${t.final}
-        </span>
-      </div>
+      <div id="reminderControls"></div>
     `;
+
+    const container = document.getElementById('reminderControls');
+
+    review.medicineLines.forEach((line, index) => {
+      const row = document.createElement('div');
+      row.className = 'med-item';
+
+      const timeId = 'reminder-time-' + index;
+
+      row.innerHTML = `
+        <div class="med-name">${translateOCRLine(line, chosenLang)}</div>
+
+        <div style="margin-top: 0.8rem;">
+          <label for="${timeId}" style="display:block; margin-bottom:0.35rem; color:var(--ink-soft); font-size:0.85rem;">
+            ${t.choose}
+          </label>
+
+          <input
+            type="time"
+            id="${timeId}"
+            style="font:inherit; padding:0.65rem; border:1px solid var(--line); border-radius:8px; color:var(--ink); background:var(--surface);"
+          >
+
+          <button
+            class="btn btn-primary"
+            type="button"
+            style="margin-top:0.7rem;"
+            id="set-reminder-${index}"
+          >
+            ${t.set}
+          </button>
+
+          <div
+            id="reminder-status-${index}"
+            class="med-detail"
+            style="margin-top:0.7rem;"
+          ></div>
+        </div>
+      `;
+
+      container.appendChild(row);
+
+      document
+        .getElementById('set-reminder-' + index)
+        .addEventListener('click', () => {
+          const input = document.getElementById(timeId);
+          const status = document.getElementById('reminder-status-' + index);
+
+          if (!input.value) {
+            input.focus();
+            return;
+          }
+
+          const [hours, minutes] = input.value.split(':').map(Number);
+
+          const now = new Date();
+          const reminderTime = new Date();
+
+          reminderTime.setHours(hours, minutes, 0, 0);
+
+          if (reminderTime <= now) {
+            reminderTime.setDate(reminderTime.getDate() + 1);
+          }
+
+          const delay = reminderTime.getTime() - now.getTime();
+
+          status.textContent =
+            t.scheduled + ' ' +
+            reminderTime.toLocaleTimeString([], {
+              hour: 'numeric',
+              minute: '2-digit'
+            });
+
+          const reminderText = translateOCRLine(line, chosenLang);
+
+          setTimeout(() => {
+            if ('Notification' in window) {
+              if (Notification.permission === 'granted') {
+                new Notification('MediBridge reminder', {
+                  body: reminderText
+                });
+              } else {
+                alert('MediBridge reminder: ' + reminderText);
+              }
+            } else {
+              alert('MediBridge reminder: ' + reminderText);
+            }
+          }, delay);
+        });
+    });
+
+    const note = document.createElement('p');
+    note.className = 'demo-flag';
+    note.textContent = t.reminderNote;
+    container.appendChild(note);
 
     return;
   }
 
   // Original demo fallback
   const rows = [];
-  rows.push({ time: '8:00 AM', what: 'Paracetamol 500mg', note: 'after breakfast' });
-  rows.push({ time: '8:00 PM', what: 'Paracetamol 500mg', note: 'after dinner' });
-  rows.push({ time: '9:00 AM', what: 'Azithromycin 250mg', note: 'once daily, 3 days' });
+
+  rows.push({
+    time: '8:00 AM',
+    what: 'Paracetamol 500mg',
+    note: 'after breakfast'
+  });
+
+  rows.push({
+    time: '8:00 PM',
+    what: 'Paracetamol 500mg',
+    note: 'after dinner'
+  });
+
+  rows.push({
+    time: '9:00 AM',
+    what: 'Azithromycin 250mg',
+    note: 'once daily, 3 days'
+  });
 
   el.innerHTML = rows.map(r => `
     <div class="reminder-row">
@@ -957,7 +1064,7 @@ function buildReminders() {
       </span>
     </div>
   `;
-        }
+}
 </script>
 </body>
 </html>
