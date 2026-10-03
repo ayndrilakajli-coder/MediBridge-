@@ -957,7 +957,9 @@ function buildReminders() {
 
     const container = document.getElementById('reminderControls');
 
-    review.medicineLines.forEach((line, index) => {
+    review.medicineLines
+  .filter(line => !/^take\b/i.test(line.trim()))
+  .forEach((line, index) => {
       const row = document.createElement('div');
       row.className = 'med-item';
 
